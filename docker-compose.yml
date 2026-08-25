@@ -1,0 +1,7 @@
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8000:8000"
