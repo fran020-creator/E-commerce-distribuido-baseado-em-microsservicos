@@ -5,3 +5,18 @@ services:
     container_name: auth-service
     ports:
       - "8000:8000"
+
+  postgres-auth:
+    image: postgres:16
+    container_name: postgres-auth
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-auth-data:
