@@ -4,7 +4,8 @@ import bcrypt
 
 from .database import Base, engine, SessionLocal
 from .models import User
-from .schemas import UserCreate
+from .schemas import UserCreate, UserLogin
+from .security import create_access_token
 
 Base.metadata.create_all(bind=engine)
 
@@ -74,4 +75,39 @@ def register(
     return {
         "id": new_user.id,
         "email": new_user.email,
+    }
+
+@app.post("/auth/login")
+def login(
+    user: UserLogin,
+    db: Session = Depends(get_db),
+):
+    existing_user = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=401,
+            detail="E-mail ou senha inválidos",
+        )
+
+    password_valid = bcrypt.checkpw(
+        user.password.encode("utf-8"),
+        existing_user.password_hash.encode("utf-8"),
+    )
+
+    if not password_valid:
+        raise HTTPException(
+            status_code=401,
+            detail="E-mail ou senha inválidos",
+        )
+
+    access_token = create_access_token(existing_user.id)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
     }

@@ -4,3 +4,4 @@ sqlalchemy
 psycopg[binary]
 bcrypt
 email-validator
+python-jose[cryptography]
