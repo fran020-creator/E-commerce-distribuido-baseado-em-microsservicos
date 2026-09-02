@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import bcrypt
-
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import Base, engine, SessionLocal
 from .models import User
 from .schemas import UserCreate, UserLogin
-from .security import create_access_token
+from .security import create_access_token, verify_access_token
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,7 +15,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-
+security = HTTPBearer()
 
 def get_db():
     db = SessionLocal()
@@ -110,4 +110,37 @@ def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
+    }
+
+
+@app.get("/auth/me")
+def me(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    token = credentials.credentials
+
+    user_id = verify_access_token(token)
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Token inválido ou expirado",
+        )
+
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="Usuário não encontrado",
+        )
+
+    return {
+        "id": user.id,
+        "email": user.email,
     }

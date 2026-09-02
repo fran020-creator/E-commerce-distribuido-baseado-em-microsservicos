@@ -5,6 +5,8 @@ services:
     container_name: auth-service
     ports:
       - "8000:8000"
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 
   postgres-auth:
     image: postgres:16
