@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from .database import Base, engine, SessionLocal
 from .models import Product
-from .schemas import ProductCreate
+from .schemas import ProductCreate, ProductUpdate,ProductResponse
 
 
 app = FastAPI(
@@ -47,7 +47,7 @@ def health_database():
         "result": result.scalar(),
     }
 
-@app.post("/products")
+@app.post("/products", response_model=ProductResponse)
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
@@ -71,7 +71,7 @@ def create_product(
         "stock": new_product.stock,
     }
 
-@app.get("/products")
+@app.get("/products",response_model=list[ProductResponse])
 def get_products(
     db: Session = Depends(get_db),
 ):
@@ -81,7 +81,7 @@ def get_products(
 
 
 
-@app.get("/products/{product_id}")
+@app.get("/products/{product_id}", response_model=ProductResponse)
 def get_product(
     product_id: int,
     db: Session = Depends(get_db),
@@ -99,3 +99,57 @@ def get_product(
         )
 
     return product
+
+
+@app.put("/products/{product_id}",response_model=ProductResponse)
+def update_product(
+    product_id: int,
+    product_data: ProductUpdate,
+    db: Session = Depends(get_db),
+):
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Produto não encontrado",
+        )
+
+    product.name = product_data.name
+    product.description = product_data.description
+    product.price = product_data.price
+    product.stock = product_data.stock
+
+    db.commit()
+    db.refresh(product)
+
+    return product
+
+@app.delete("/products/{product_id}")
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Produto não encontrado",
+        )
+
+    db.delete(product)
+    db.commit()
+
+    return {
+        "message": "Produto excluído com sucesso",
+        "id": product_id,
+    }
