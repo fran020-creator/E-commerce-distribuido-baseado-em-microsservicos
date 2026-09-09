@@ -20,5 +20,27 @@ services:
     volumes:
       - postgres-auth-data:/var/lib/postgresql/data
 
+  postgres-product:
+    image: postgres:16
+    container_name: postgres-product
+    environment:
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: product_password
+      POSTGRES_DB: product_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+
+  product-service:
+    build:
+      context: ./product-service
+    container_name: product-service
+    ports:
+      - "8001:8001"
+
 volumes:
   postgres-auth-data:
+  postgres-product-data:
+
+
