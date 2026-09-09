@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends,HTTPException
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from .database import Base,engine
+from .database import Base, engine, SessionLocal
 from .models import Product
+from .schemas import ProductCreate
 
 
 app = FastAPI(
@@ -12,6 +14,13 @@ app = FastAPI(
 )
 
 Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.get("/")
 def root():
@@ -37,3 +46,56 @@ def health_database():
         "database": "connected",
         "result": result.scalar(),
     }
+
+@app.post("/products")
+def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+):
+    new_product = Product(
+        name=product.name,
+        description=product.description,
+        price=product.price,
+        stock=product.stock,
+    )
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    return {
+        "id": new_product.id,
+        "name": new_product.name,
+        "description": new_product.description,
+        "price": new_product.price,
+        "stock": new_product.stock,
+    }
+
+@app.get("/products")
+def get_products(
+    db: Session = Depends(get_db),
+):
+    products = db.query(Product).all()
+
+    return products
+
+
+
+@app.get("/products/{product_id}")
+def get_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id)
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Produto não encontrado",
+        )
+
+    return product
