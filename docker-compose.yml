@@ -39,8 +39,28 @@ services:
     ports:
       - "8001:8001"
 
+  postgres-inventory:
+    image: postgres:16
+    container_name: postgres-inventory
+    environment:
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: inventory_password
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-inventory-data:/var/lib/postgresql/data
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+    container_name: inventory-service
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres-inventory
+
 volumes:
   postgres-auth-data:
   postgres-product-data:
-
-
+  postgres-inventory-data:

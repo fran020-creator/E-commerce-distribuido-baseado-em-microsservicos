@@ -1,0 +1,16 @@
+from pydantic import BaseModel, Field
+
+
+class InventoryCreate(BaseModel):
+    product_id: int
+    quantity: int = Field(ge=0)
+
+
+class InventoryUpdate(BaseModel):
+    quantity: int = Field(ge=0)
+
+
+class InventoryResponse(BaseModel):
+    id: int
+    product_id: int
+    quantity: int

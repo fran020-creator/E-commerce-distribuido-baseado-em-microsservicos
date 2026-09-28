@@ -56,7 +56,6 @@ def create_product(
         name=product.name,
         description=product.description,
         price=product.price,
-        stock=product.stock,
     )
 
     db.add(new_product)
@@ -68,7 +67,6 @@ def create_product(
         "name": new_product.name,
         "description": new_product.description,
         "price": new_product.price,
-        "stock": new_product.stock,
     }
 
 @app.get("/products",response_model=list[ProductResponse])
@@ -122,8 +120,7 @@ def update_product(
     product.name = product_data.name
     product.description = product_data.description
     product.price = product_data.price
-    product.stock = product_data.stock
-
+    
     db.commit()
     db.refresh(product)
 

@@ -7,14 +7,14 @@ class ProductCreate(BaseModel):
     name: str
     description: str | None = None
     price: Decimal = Field(gt=0)
-    stock: int = Field(ge=0)
+    
 
 
 class ProductUpdate(BaseModel):
     name: str
     description: str | None = None
     price: Decimal = Field(gt=0)
-    stock: int = Field(ge=0)
+    
 
 
 class ProductResponse(BaseModel):
@@ -24,4 +24,4 @@ class ProductResponse(BaseModel):
     name: str
     description: str | None = None
     price: Decimal
-    stock: int
+    
